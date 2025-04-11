@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kapwa - Your Intelligent Chat Companion</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1000112684-clzTv3Nsr2qAjAr1cZX5S4nc8Y5tV6.png" alt="Aitek Software" class="aitek-logo">
+                </div>
+                <h1>Joy</h1>
+            </div>
+            <div class="header-controls">
+                <button id="theme-toggle" class="icon-button" title="Toggle theme">
+                    <span class="material-symbols-outlined hide-text">light_mode</span>
+                </button>
+                <!-- Settings button with cover -->
+                <div class="settings-container">
+                    <button id="config-toggle" class="icon-button" title="Settings">
+                        <span class="material-symbols-outlined">settings</span>
+                    </button>
+                    <!-- This div covers the settings button -->
+                    <div class="settings-cover"></div>
+                </div>
+                <button id="connect-button" class="primary-button">
+                    <span class="material-symbols-outlined">wifi</span>
+                    <span>Connect</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Configuration Panel (Hidden by default on mobile) -->
+        <div id="config-container" class="hidden-mobile">
+            <div class="config-header">
+                <h2>Settings</h2>
+                <button class="close-button icon-button">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="config-wrapper">
+                <div class="preset-sets">
+                    <h3>Quick Presets</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-button" data-preset="friendly">
+                            <div class="preset-icon">
+                                <span class="material-symbols-outlined">sentiment_satisfied</span>
+                            </div>
+                            <div class="preset-content">
+                                <span class="preset-name">Friendly Assistant</span>
+                                <span class="preset-desc">Warm and helpful tone with Aoede's high pitch voice</span>
+                            </div>
+                        </button>
+                        <button class="preset-button" data-preset="professional">
+                            <div class="preset-icon">
+                                <span class="material-symbols-outlined">business_center</span>
+                            </div>
+                            <div class="preset-content">
+                                <span class="preset-name">Professional Expert</span>
+                                <span class="preset-desc">Formal and precise with Charon's voice</span>
+                            </div>
+                        </button>
+                        <button class="preset-button" data-preset="tired">
+                            <div class="preset-icon">
+                                <span class="material-symbols-outlined">bedtime</span>
+                            </div>
+                            <div class="preset-content">
+                                <span class="preset-name">Tired Assistant</span>
+                                <span class="preset-desc">Tired and sleepy with Aoede's low pitch voice</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <label for="voice-select">Voice</label>
+                    <select id="voice-select" class="config-input">
+                        <option value="Puck">Puck (Male)</option>
+                        <option value="Charon">Charon (Male)</option>
+                        <option value="Kore">Kore (Female)</option>
+                        <option value="Fenrir">Fenrir (Male)</option>
+                        <option value="Aoede">Aoede (Female)</option>
+                    </select>
+                </div>
+
+                <div class="config-section">
+                    <label for="sample-rate-input">Sample Rate (Hz)</label>
+                    <div class="sample-rate-container">
+                        <input type="number" id="sample-rate-input" class="config-input" placeholder="Sample Rate (Hz)" min="8000" max="48000" step="1000">
+                        <span class="sample-rate-help">Higher = higher pitch, Lower = lower pitch</span>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <label for="system-instruction">System Instructions</label>
+                    <textarea id="system-instruction" class="config-input" placeholder="Enter custom system instructions..." rows="5"></textarea>
+                </div>
+
+                <button id="apply-config" class="primary-button">
+                    <span class="material-symbols-outlined">check</span>
+                    Apply Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Chat Interface -->
+            <div class="chat-interface">
+                <!-- Logs Container (Collapsible on mobile) -->
+                <div class="logs-wrapper">
+                    <div class="logs-header">
+                        <span>Chats</span>
+                        <button id="toggle-logs" class="icon-button">
+                            <span class="material-symbols-outlined hide-text">expand_more</span>
+                        </button>
+                    </div>
+                    <div id="logs-container"></div>
+                </div>
+
+                <!-- Audio Visualizers -->
+                <div class="audio-visualizers">
+                    <div class="visualizer-container">
+                        <label>Input Audio</label>
+                        <div id="input-audio-visualizer">
+                            <div class="audio-bar"></div>
+                        </div>
+                    </div>
+                    <div class="visualizer-container">
+                        <label>Output Audio</label>
+                        <div id="audio-visualizer">
+                            <div class="audio-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Controls -->
+                <div class="input-controls">
+                    <div class="input-wrapper">
+                        <input type="text" id="message-input" placeholder="Type your message here...">
+                        <button id="send-button" class="send-button">
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="mic-button" class="action-button">
+                            <span id="mic-icon" class="material-symbols-outlined">mic</span>
+                            <span class="button-label">Voice</span>
+                        </button>
+                        <button id="camera-button" class="action-button">
+                            <span id="camera-icon" class="material-symbols-outlined">videocam</span>
+                            <span class="button-label">Camera</span>
+                        </button>
+                        <button id="screen-button" class="action-button">
+                            <span id="screen-icon" class="material-symbols-outlined">screen_share</span>
+                            <span class="button-label">Screen</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Video/Screen Preview Containers -->
+        <div id="video-container" style="display: none;">
+            <div class="preview-header">
+                <span>Camera Preview</span>
+                <button id="stop-video" class="icon-button">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <video id="preview" playsinline autoplay muted></video>
+        </div>
+
+        <div id="screen-container" style="display: none;">
+            <div class="preview-header">
+                <span>Screen Preview</span>
+                <button class="close-button icon-button">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <video id="screen-preview" playsinline autoplay muted></video>
+        </div>
+    </div>
+    <script src="js/main.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Joy - Voice Interface (Final Attempt)</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" />
+
+    <style>
+        /* --- Base Styles --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0f0f13;
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+
+        /* --- Visual Overlay Layer --- */
+        #voice-ui-visual-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0f0f13; /* Solid dark background */
+            z-index: 10; /* Above iframe */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #f0f0f0;
+             /* Let clicks pass through the general overlay */
+            pointer-events: none;
+        }
+
+        /* Overlay Content Styling (Timer, Circle, Status, Fake Buttons) */
+        .voice-overlay-top { width: 100%; display: flex; justify-content: center; margin-top: 10px; }
+        #overlay-timer { background-color: rgba(40, 40, 45, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; text-align: center; min-width: 100px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .voice-overlay-center { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; }
+        #overlay-visualizer-circle { width: clamp(180px, 40vw, 250px); height: clamp(180px, 40vw, 250px); border-radius: 50%; background-image: radial-gradient(circle, rgba(173, 216, 230, 0.7) 0%, rgba(100, 149, 237, 0.5) 50%, rgba(138, 43, 226, 0.3) 100%), linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.05) 100%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.04"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)"/></svg>'); background-blend-mode: overlay, normal; box-shadow: 0 0 30px rgba(173, 216, 230, 0.4); margin-bottom: 25px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        #overlay-status-text { color: #a0a0a0; font-size: 1rem; margin-top: 10px; }
+        .voice-overlay-controls { display: flex; justify-content: center; align-items: center; gap: 25px; width: 100%; padding-bottom: 30px; }
+        .overlay-control-button { background-color: rgba(40, 40, 45, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+        .overlay-control-button .material-symbols-outlined { font-size: 28px; }
+        .overlay-control-button.overlay-cancel { background-color: rgba(234, 67, 53, 0.7); border-color: rgba(234, 67, 53, 0.6); }
+        .overlay-control-button.overlay-mic { opacity: 0.8; }
+
+        /* --- iFrame Styling --- */
+        #original-app-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1; /* Sits underneath the overlay */
+            background-color: transparent !important; /* Try to make background see-through */
+            color-scheme: dark;
+            opacity: 0.9; /* Make iframe slightly transparent if needed */
+        }
+
+        /* --- Click Target Areas --- */
+        /* These divs sit *visually* on top of the overlay, are transparent,
+           and use JS to trigger clicks on the iframe buttons below */
+        .click-target {
+            position: fixed; /* Position relative to viewport */
+            z-index: 11; /* Above the visual overlay */
+            pointer-events: auto; /* Make these specific areas clickable */
+            cursor: pointer;
+            /* background-color: rgba(0, 255, 0, 0.1); /* DEBUG: uncomment to see targets */
+            border-radius: 12px; /* Match button shapes */
+        }
+        .click-target.circle {
+            border-radius: 50%;
+        }
+
+        #connect-click-target {
+            top: 35px;       /* Match Connect button Y */
+            right: 30px;      /* Match Connect button X */
+            width: 100px;     /* Match Connect button width */
+            height: 40px;    /* Match Connect button height */
+        }
+
+        #mic-click-target {
+            bottom: 40px;    /* Match Mic button Y */
+            left: 50%;
+            /* Position based on the VISUAL fake mic button */
+            transform: translateX(calc(-50% + 60px + 12.5px - 30px)); /* Center the target over button */
+            width: 60px;     /* Match Mic button width */
+            height: 60px;    /* Match Mic button height */
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 1. The iFrame loading your original application (Underneath) -->
+    <iframe id="original-app-iframe" src="index.html" title="Original Application" allow="microphone; camera; display-capture"></iframe>
+
+    <!-- 2. The Visual Overlay Layer (Visually on top) -->
+    <div id="voice-ui-visual-layer">
+        <!-- Overlay Top: Timer -->
+        <div class="voice-overlay-top">
+            <div id="overlay-timer">00:00 / 00:00</div>
+        </div>
+        <!-- Overlay Center: Visualizer and Status -->
+        <div class="voice-overlay-center">
+            <div id="overlay-visualizer-circle"></div>
+            <div id="overlay-status-text">Listening...</div>
+        </div>
+        <!-- Overlay Bottom: Fake Controls -->
+        <div class="voice-overlay-controls">
+            <div class="overlay-control-button overlay-settings"><span class="material-symbols-outlined">tune</span></div>
+            <div class="overlay-control-button overlay-cancel"><span class="material-symbols-outlined">close</span></div>
+            <div class="overlay-control-button overlay-mic"><span class="material-symbols-outlined">mic</span></div>
+        </div>
+    </div>
+
+    <!-- 3. Click Target Divs (Invisible, positioned over buttons) -->
+    <div id="connect-click-target" class="click-target"></div>
+    <div id="mic-click-target" class="click-target circle"></div>
+
+    <!-- 4. JavaScript to Bridge Clicks -->
+    <script>
+        const iframe = document.getElementById('original-app-iframe');
+        const connectTarget = document.getElementById('connect-click-target');
+        const micTarget = document.getElementById('mic-click-target');
+
+        function triggerIframeClick(buttonId) {
+            console.log(`Attempting to click #${buttonId} inside iframe.`);
+            try {
+                // Check if iframe and its contentWindow are accessible
+                if (iframe && iframe.contentWindow) {
+                    // Find the button inside the iframe's document
+                    const buttonInIframe = iframe.contentWindow.document.getElementById(buttonId);
+                    if (buttonInIframe) {
+                        // Trigger the click event on the button
+                        buttonInIframe.click();
+                        console.log(`Clicked #${buttonId} inside iframe successfully.`);
+                    } else {
+                        console.warn(`Button #${buttonId} not found inside iframe.`);
+                    }
+                } else {
+                     console.error("Cannot access iframe contentWindow.");
+                }
+            } catch (e) {
+                console.error(`Error clicking #${buttonId} in iframe:`, e);
+                // Errors often happen due to timing or security restrictions
+            }
+        }
+
+        // Add click listener to the Connect target div
+        if (connectTarget) {
+            connectTarget.addEventListener('click', () => {
+                console.log("Connect target clicked.");
+                triggerIframeClick('connect-button'); // ID of the button in index.html
+            });
+        } else {
+             console.error("Connect click target not found.");
+        }
+
+
+        // Add click listener to the Mic target div
+        if (micTarget) {
+            micTarget.addEventListener('click', () => {
+                console.log("Mic target clicked.");
+                triggerIframeClick('mic-button'); // ID of the button in index.html
+            });
+        } else {
+             console.error("Mic click target not found.");
+        }
+
+         // Optional: Update overlay visuals based on iframe state (more complex)
+         // Requires communication FROM the iframe TO the parent, or polling.
+         // For simplicity, this example only handles CLICKING INTO the iframe.
+         // Example: Listen for messages from the iframe
+         /*
+         window.addEventListener('message', (event) => {
+             // IMPORTANT: Check event.origin for security if iframe source can change
+             // if (event.origin !== 'expected-origin') return;
+
+             if (event.data.type === 'STATUS_UPDATE') {
+                 document.getElementById('overlay-status-text').textContent = event.data.text;
+             }
+             if (event.data.type === 'TIMER_UPDATE') {
+                 document.getElementById('overlay-timer').textContent = event.data.text;
+             }
+             // Add more message types as needed
+         });
+         // The code INSIDE index.html (in js/main.js) would need to send messages like:
+         // window.parent.postMessage({ type: 'STATUS_UPDATE', text: 'Recording...' }, '*');
+         */
+
+    </script>
+
+</body>
+</html>

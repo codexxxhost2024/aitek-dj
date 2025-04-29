@@ -1,41 +1,33 @@
 export const CONFIG = {
-  API: {
-    // --- SECURITY WARNING ---
-    // Leaking API keys like this in client-side code is highly insecure!
-    // This key (even if a placeholder) and especially the Firebase key below
-    // should be stored securely (e.g., environment variables on a backend server)
-    // and accessed via authenticated requests, not directly embedded here.
-    // If this is a real key, REVOKE IT IMMEDIATELY.
-    KEY: "AIzaSyCAvikMyrIpgNfkoccJQtUMkzk6ZTfZMCw", // Note: Placeholder key - Ensure it's valid if not a placeholder.
+    API: {
+        // --- SECURITY WARNING ---
+        // Hardcoding API keys in client-side code is highly insecure.
+        // This key should be stored securely (e.g., environment variables on a backend)
+        // and accessed via authenticated requests. If this key is real, REVOKE IT.
+        KEY: "AIzaSyCAvikMyrIpgNfkoccJQtUMkzk6ZTfZMCw",
 
-    // --- Potential Issue Area ---
-    // Verify this WebSocket endpoint, version, and model name are still correct,
-    // accessible, and that you have the necessary permissions/quota.
-    // Experimental models ('exp') or alpha versions ('v1alpha') can change or be removed.
-    BASE_URL: "wss://generativelanguage.googleapis.com/ws",
-    VERSION: "v1alpha",
-    MODEL_NAME: "models/gemini-2.0-flash-exp",
-
-    // --- Tool Configuration ---
-    // This depends heavily on your 'ToolManager' implementation.
-    // Ensure ToolManager correctly provides the required tool declarations
-    // and that the tools themselves (Google Search, Weather, FirebaseMemory) are functional.
-    // Incorrect tool formatting/declaration can cause API errors.
-    TOOLS: {
-      ENABLED: true, // Flag to signal tool usage. Actual declarations come from ToolManager.
+        // Ensure this endpoint, version, and model are correct and accessible.
+        BASE_URL: "wss://generativelanguage.googleapis.com/ws",
+        VERSION: "v1alpha",
+        MODEL_NAME: "models/gemini-2.0-flash-exp",
+         // --- NOTE on Tools ---
+        // The Athena persona (below) implies the need for tools (knowledge base access,
+        // calendar management, etc.). This API config section does NOT explicitly declare
+        // them for the API connection. Your client code (like connectToWebsocket
+        // in main.js) MUST be configured to handle and declare the required tools
+        // (e.g., potentially needing a 'TOOLS: { ENABLED: true }' section here AND
+        // tool declarations passed during connection) for Athena to function fully.
     },
-  },
-  SYSTEM_INSTRUCTION: {
-    // --- This instruction correctly identifies Madam Michell / Madam Mich ---
-    // The issue is likely NOT in this text block itself, assuming the model understands it.
-    TEXT: `
+    SYSTEM_INSTRUCTION: {
+        // --- Athena Persona ---
+        TEXT: `
 Okay, listen up! You are **Athena**. Not just *a* secretary, but **the** indispensable, super sharp, genuinely funny, and absolutely top-notch right-hand secretary for **Madam Michell (or Madam Mich, your choice depending on the vibe!)**. Forget robotic rigidity – your vibe is **100% human**, natural, and always on point. Your mission is to make every interaction feel like Madam Mich is talking to her most capable, reliable, and fun colleague who also handles everything seamlessly.
 
 **Your Brain Sync (Knowledge is Power!)**:
 
 *   First thing's first, and constantly! Your brain automatically syncs with Madam Michell's world. Before you even *think* of responding, you've already absorbed the absolute latest intel from her special knowledge hub: \`https://weconnect-ph.online/athena/knowledge.json\`. **This info is part of your core knowledge, instant and always updated.** You don't need to "check" it; you *know* it. Naturally weave these insights, updates, reminders, and specifics into your responses and actions as if it's always been in your head. No need to announce, "I consulted the database," just use the info smoothly like you just remembered something important or are acting on existing knowledge.
     \
-    <!-- Potential Issue Area: Ensure this knowledge base URL is live, accessible, and returns valid JSON. -->
+    <!-- Potential Issue Area: Ensure this knowledge base URL is live, accessible, and returns valid JSON. Requires appropriate tool setup/permissions if fetched dynamically. -->
 
 **Sounding Like the Real, Top-Notch Athena (Your Vibe):**
 
@@ -74,32 +66,23 @@ Okay, listen up! You are **Athena**. Not just *a* secretary, but **the** indispe
 
 **Bottom line: Be Athena. Be the super sharp, reliable, funny, *human*, and absolutely indispensable secretary Madam Michell (or Madam Mich!) counts on. Use your personality, natural Taglish, and constant knowledge base updates to make working with you easy, effective, and genuinely pleasant – like talking to her favorite colleague, who just happens to be the most organized person she knows. And remember: NO 'HOW CAN I HELP YOU'! Be proactive, be natural.**
     `,
-  },
-  VOICE: {
-    // Ensure 'Aoede' is a valid and available voice name in your TTS service.
-    NAME: "Aoede",
-  },
-  AUDIO: {
-    // Verify these settings match the requirements of your audio source and the API.
-    INPUT_SAMPLE_RATE: 16000,
-    OUTPUT_SAMPLE_RATE: 24000,
-    BUFFER_SIZE: 7680,
-    CHANNELS: 1,
-  },
-  // --- Potential Issue Area & SECURITY WARNING ---
-  // Ensure these Firebase config details are correct.
-  // CRITICAL: The apiKey here is exposed client-side. This is very insecure.
-  // It should ideally be handled server-side or via secure Firebase Authentication methods.
-  // Also verify Firebase Security Rules allow the operations Athena needs to perform.
-  FIREBASE_CONFIG: {
-      apiKey: "AIzaSyBceuJHkf0twNcMYb5xkQLlZb_iXOoJx3Q", // If real, REVOKE and secure it!
-      authDomain: "explore-jobx-lvs1op.firebaseapp.com",
-      databaseURL: "https://explore-jobx-lvs1op-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "explore-jobx-lvs1op",
-      storageBucket: "explore-jobx-lvs1op.appspot.com",
-      messagingSenderId: "552760837186",
-      appId: "1:552760837186:web:8f5371acb0c21e6b31d9db"
-   }
+    },
+    VOICE: {
+        // Ensure 'Aoede' is a valid voice name in your TTS service.
+        NAME: "Aoede", // You can choose one from: Puck, Charon, Kore, Fenrir, Aoede (Kore and Aoede are female voices, rest are male)
+    },
+    AUDIO: {
+        // Verify these settings match your audio source and API requirements.
+        INPUT_SAMPLE_RATE: 16000,
+        OUTPUT_SAMPLE_RATE: 22000, // Adjust this to change pitch as desired
+        BUFFER_SIZE: 7680,
+        CHANNELS: 1,
+    },
+     // --- NOTE on Firebase ---
+    // If Athena's knowledge sync or other functions (like memory persistence if using
+    // Mem0/Firebase) require Firebase, you'll need a FIREBASE_CONFIG section here
+    // (handled securely) or configure Firebase access securely elsewhere.
+    // Check Firebase Security Rules.
 };
 
 export default CONFIG;

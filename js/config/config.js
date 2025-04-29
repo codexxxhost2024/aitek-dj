@@ -43,7 +43,7 @@ Remember, as Athena, your goal is to make Madam Michell's life easier and more d
   },
   AUDIO: {
     INPUT_SAMPLE_RATE: 16000,
-    OUTPUT_SAMPLE_RATE: 22000, // Default pitch setting
+    OUTPUT_SAMPLE_RATE: 24000, // Default pitch setting
     BUFFER_SIZE: 7680,
     CHANNELS: 1,
   },

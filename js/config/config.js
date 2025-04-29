@@ -13,7 +13,7 @@ export const CONFIG = {
     },
     AUDIO: {
         INPUT_SAMPLE_RATE: 16000,
-        OUTPUT_SAMPLE_RATE: 22000, // Adjust this to change pitch as desired
+        OUTPUT_SAMPLE_RATE: 25000, // Adjust this to change pitch as desired
         BUFFER_SIZE: 7680,
         CHANNELS: 1,
     },
